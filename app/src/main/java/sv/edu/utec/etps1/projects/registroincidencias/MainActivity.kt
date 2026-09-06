@@ -16,10 +16,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import sv.edu.utec.etps1.projects.registroincidencias.ui.theme.RegistroIncidenciasTheme
@@ -37,6 +43,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun RegistroIncidenciasApp() {
+
+    var titulo by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
+    var mensaje by remember { mutableStateOf("Aún no hay reporte creado") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,17 +60,20 @@ fun RegistroIncidenciasApp() {
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(12.dp))
+
         Icon(
             imageVector = Icons.Filled.Warning,
             contentDescription = "Icono de alerta",
             modifier = Modifier.height(32.dp)
         )
         Spacer(modifier = Modifier.height(12.dp))
+
         Text(
             text = "Reporta fallas en equipos de los laboratorios " +
                     "de cómputo y da seguimiento a su solución."
         )
         Spacer(modifier = Modifier.height(24.dp))
+
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -70,11 +84,54 @@ fun RegistroIncidenciasApp() {
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = { /* Se implementará en una unidad posterior */ }) {
-            Text(text = "Reportar falla")
+
+        // Title Input
+        OutlinedTextField(
+            value = titulo,
+            onValueChange = { titulo = it },
+            label = { Text("Título") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Description Input
+        OutlinedTextField(
+            value = descripcion,
+            onValueChange = { descripcion = it },
+            label = { Text("Descripción") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Submit Button
+        Button(
+            onClick = {
+                if (titulo.isNotBlank()) {
+                    mensaje = "Reporte preparado: $titulo"
+                } else {
+                    mensaje = "Por favor ingrese un título"
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Crear reporte")
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Prototipo inicial — Unidad 1")
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Output Message Display
+        Text(
+            text = mensaje,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Prototipo inicial — Unidad 1",
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
 

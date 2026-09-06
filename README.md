@@ -1,2 +1,2 @@
 # RegistroIncidenciasTIPS-I
-Primera version de proyecto de catedragi
+Primera version de proyecto de catedra
