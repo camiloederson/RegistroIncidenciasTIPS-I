@@ -3,50 +3,71 @@ package sv.edu.utec.etps1.projects.registroincidencias
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import sv.edu.utec.etps1.projects.registroincidencias.ui.theme.RegistroIncidenciasTheme
+
+// Modelo de datos para la incidencia
+data class Incidencia(
+    val titulo: String,
+    val descripcion: String,
+    val fechaHora: String
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             RegistroIncidenciasTheme {
-                RegistroIncidenciasApp()
+                AppNavegacion()
             }
         }
     }
 }
 
 @Composable
-fun RegistroIncidenciasApp() {
+fun AppNavegacion() {
+    // Lista compartida en memoria
+    val listaIncidencias = remember { mutableStateListOf<Incidencia>() }
+    // Estado para controlar la vista actual: true = Registro, false = Lista
+    var verPantallaRegistro by remember { mutableStateOf(true) }
 
+    if (verPantallaRegistro) {
+        PantallaRegistro(
+            onGuardarIncidencia = { nuevaIncidencia ->
+                listaIncidencias.add(0, nuevaIncidencia) // Agrega al inicio
+            },
+            onIrALista = { verPantallaRegistro = false }
+        )
+    } else {
+        PantallaListaIncidencias(
+            incidencias = listaIncidencias,
+            onIrARegistro = { verPantallaRegistro = true }
+        )
+    }
+}
+
+@Composable
+fun PantallaRegistro(
+    onGuardarIncidencia: (Incidencia) -> Unit,
+    onIrALista: () -> Unit
+) {
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var mensaje by remember { mutableStateOf("Aún no hay reporte creado") }
+    var mensaje by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -55,37 +76,9 @@ fun RegistroIncidenciasApp() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Registro de Incidencias de Laboratorio",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+        Text("Registro de Incidencias", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Icon(
-            imageVector = Icons.Filled.Warning,
-            contentDescription = "Icono de alerta",
-            modifier = Modifier.height(32.dp)
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Reporta fallas en equipos de los laboratorios " +
-                    "de cómputo y da seguimiento a su solución."
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Sin incidencias activas",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(text = "Todos los equipos operan con normalidad.")
-            }
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Title Input
         OutlinedTextField(
             value = titulo,
             onValueChange = { titulo = it },
@@ -95,7 +88,6 @@ fun RegistroIncidenciasApp() {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Description Input
         OutlinedTextField(
             value = descripcion,
             onValueChange = { descripcion = it },
@@ -105,40 +97,89 @@ fun RegistroIncidenciasApp() {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Submit Button
+        // Botón de agregar tarea / incidencia
         Button(
             onClick = {
-                if (titulo.isNotBlank()) {
-                    mensaje = "Reporte preparado: $titulo"
+                if (titulo.isNotBlank() && descripcion.isNotBlank()) {
+                    // Genera fecha y hora automática
+                    val fechaActual = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date())
+                    onGuardarIncidencia(Incidencia(titulo, descripcion, fechaActual))
+                    mensaje = "Incidencia registrada con éxito"
+                    titulo = ""
+                    descripcion = ""
                 } else {
-                    mensaje = "Por favor ingrese un título"
+                    mensaje = "Por favor complete todos los campos"
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Crear reporte")
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Agregar incidencia")
         }
-        Spacer(modifier = Modifier.height(16.dp))
 
-        // Output Message Display
-        Text(
-            text = mensaje,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Prototipo inicial — Unidad 1",
-            style = MaterialTheme.typography.labelSmall
-        )
+        // Link / Botón para ir a la lista de incidencias
+        TextButton(onClick = onIrALista) {
+            Icon(Icons.Default.List, contentDescription = null)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("Ver lista de incidencias")
+        }
+
+        if (mensaje.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = mensaje, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun RegistroIncidenciasPreview() {
-    RegistroIncidenciasTheme {
-        RegistroIncidenciasApp()
+fun PantallaListaIncidencias(
+    incidencias: List<Incidencia>,
+    onIrARegistro: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text("Historial de Incidencias", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (incidencias.isEmpty()) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Text("No hay incidencias registradas.")
+            }
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(incidencias) { item ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(text = item.titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text(text = item.descripcion, style = MaterialTheme.typography.bodyMedium)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Fecha: ${item.fechaHora}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onIrARegistro,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Volver a registrar")
+        }
     }
 }
